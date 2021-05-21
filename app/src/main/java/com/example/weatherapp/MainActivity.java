@@ -3,10 +3,13 @@ package com.example.weatherapp;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.loader.content.AsyncTaskLoader;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.Visibility;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -74,7 +77,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public class DownloadIcon extends AsyncTask<String, Void, Bitmap>{
+
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+
+            Bitmap bitmap = null;
+
+            URL url;
+
+            HttpURLConnection httpURLConnection = null;
+
+            InputStream inputStream;
+
+
+            try {
+
+
+                url = new URL(strings[0]);
+
+                inputStream = httpURLConnection.getInputStream();
+
+                bitmap = BitmapFactory.decodeStream(inputStream);
+
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            return bitmap;
+        }
+    }
+
     TextView txtCity,txtTime,txtValueFeelLike,txtValueHumidity,txtVision,txtTemp;
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
                 txtValueFeelLike = findViewById(R.id.txtValueFeelLike);
                 txtValueHumidity = findViewById(R.id.txtValueHumidity);
                 txtVision = findViewById(R.id.txtValueVision);
+                txtTemp = findViewById(R.id.txtValue);
+                imageView = findViewById(R.id.imgIcon);
 
         DownloadJSON downloadJSON = new DownloadJSON();
 
@@ -112,7 +153,19 @@ public class MainActivity extends AppCompatActivity {
             txtVision.setText(visibility);
             txtValueFeelLike.setText(feel_Like);
             txtValueHumidity.setText(humidity);
-            txtTemp.setText(temp);
+            txtTemp.setText(temp + "°");
+
+            String nameIcon = "10d";
+
+            nameIcon = jsonObject.getJSONArray("weather").getJSONObject(0).getString("icon");
+
+            String urlIcon = "http://openweathermap.org/img/wn/"+ nameIcon +"@2x.png";
+
+            DownloadIcon downloadIcon = new DownloadIcon();
+
+            Bitmap bitmap = downloadIcon.execute(urlIcon).get();
+
+            imageView.setImageBitmap(bitmap);
 
         } catch (ExecutionException e) {
             e.printStackTrace();
